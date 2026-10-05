@@ -38,7 +38,7 @@ I²C 400kHzも候補だが、USB処理待ちをclock stretchingで本体へ伝�
 | M5Stack Module USB / MAX3421E | SPI接続。通常のGroveケーブルだけでは必要信号を確保できない |
 | M5Stack Unit MIDI | Grove UARTでDIN MIDIと内蔵音源を扱う。USB MIDIホスト端子はない |
 
-RP2040は [LCSC C2040](https://www.lcsc.com/product-detail/C2040.html)、CH32V203C8T6は [LCSC C3001172](https://www.lcsc.com/product-detail/C3001172.html)で掲載を確認。2026-10-06のページ表示はRP2040が1個約$1.00、CH32V203C8T6が約$0.83。価格・在庫・JLCPCBでのPCBA利用可否は発注時に再確認する。マイコン価格だけでなく、Flash・水晶・USB端子・給電保護・実装費・ファームウェア開発費を含めて比較する。
+RP2040は [LCSC C2040](https://www.lcsc.com/product-detail/C2040.html)、CH32V203C8T6は [LCSC C3001172](https://www.lcsc.com/product-detail/C3001172.html)で掲載を確認。2026-10-06のページ表示はRP2040が1個約$1.00、CH32V203C8T6が約$0.89。価格・在庫・JLCPCBでのPCBA利用可否は発注時に再確認する。マイコン価格だけでなく、Flash・水晶・USB端子・給電保護・実装費・ファームウェア開発費を含めて比較する。
 
 RP2040のUSB仕様は [Raspberry Pi公式仕様](https://www.raspberrypi.com/products/rp2040/specifications/)。UARTとUSB MIDIを橋渡しする実装例は [midi2usbhost](https://github.com/rppicomidi/midi2usbhost)。CH32V203のUSB機能と評価ソースは [WCH公式リポジトリ](https://github.com/openwch/ch32v20x)。小ピン数品はUSBホストに使う端子が出ているか型番ごとに確認し、シリーズ共通の紹介だけで選ばない。
 
