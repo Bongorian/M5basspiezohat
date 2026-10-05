@@ -1,0 +1,43 @@
+{
+  "model_bounds_mm": {
+    "min": [
+      39.99999910593033,
+      -75.68000257015228,
+      -2.0050001330673695
+    ],
+    "max": [
+      61.000000685453415,
+      -29.999999329447746,
+      6.074999924749136
+    ],
+    "size": [
+      21.000001579523087,
+      45.680003240704536,
+      8.080000057816505
+    ]
+  },
+  "board_mm": [
+    21,
+    38,
+    1
+  ],
+  "case_body_mm": [
+    23.8,
+    41.1,
+    14.8
+  ],
+  "including_model_contacts_mm": [
+    23.8,
+    46.980003240704534,
+    14.8
+  ],
+  "including_datasheet_contacts_nominal_mm": [
+    23.8,
+    47.3,
+    14.8
+  ],
+  "connector_tolerance_length_mm": 0.4,
+  "length_budget_max_mm": 47.9,
+  "case_positive_tolerance_budget_mm": 0.2,
+  "status": "package model calculation, mating and cable strain relief not validated"
+}

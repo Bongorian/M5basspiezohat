@@ -1,0 +1,26 @@
+{
+  "PCBA_JLCPCB.zip": {
+    "bytes": 252702,
+    "sha256": "d8ade6a4074188e1602f832b6e20fb0a9362fd81b4d85d93d5585cd174a39dcf"
+  },
+  "Gerber_JLCPCB.zip": {
+    "bytes": 112423,
+    "sha256": "23faf864d278a4233cf9d8d167321129ccb9e9aedd494c91f3b0702118cfa98e"
+  },
+  "KiCad_source.zip": {
+    "bytes": 269858,
+    "sha256": "20d21232c82ad88bf4311413963055be7da06ad731f30eeed002cec1a091f5ee"
+  },
+  "BOM_JLCPCB.csv": {
+    "bytes": 1043,
+    "sha256": "c58cbaa22500048c1c34499559ec12e17ab9852340e5bfb9d0862194a4e630cf"
+  },
+  "CPL_JLCPCB.csv": {
+    "bytes": 3641,
+    "sha256": "66747085bb71b5784be47b88ac831880471a0d3d7453c66e84a6c0ca365a79e6"
+  },
+  "assembly-front.png": {
+    "bytes": 152546,
+    "sha256": "56f1db8c654304936a2cc704e27bf6278baab16e7945ab246ac7ce013202a6c5"
+  }
+}

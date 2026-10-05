@@ -1,0 +1,1 @@
+(fp_lib_table (version 7) (lib (name "PiezoHat") (type "KiCad") (uri "${KIPRJMOD}/PiezoHat.pretty") (options "") (descr "Project footprints")))

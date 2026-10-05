@@ -1,0 +1,13 @@
+{
+  "pin_net_matches": 318,
+  "all_real_components_front": true,
+  "rear_copper_only": [
+    "TP1",
+    "TP2",
+    "TP4",
+    "TP3"
+  ],
+  "via_drill_overlaps_smd_paste_pad": [],
+  "track_segments": 2410,
+  "vias": 161
+}
