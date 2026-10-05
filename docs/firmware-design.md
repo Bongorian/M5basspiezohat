@@ -73,6 +73,8 @@ USBはNVSに保存した役割を起動時に読み込む。デバイスモー�
 
 StickS3はUSB-CへVBUSを供給しないため、ホストでは外部の給電・逆流防止・Type-C役割条件を満たす接続が必要。ホスト時のCDCは提供しない。操作・制限は [USB切り替え手順](../firmware/README.md#usbホストデバイス切り替え) を参照。[USB MIDI 1.0仕様](https://www.usb.org/sites/default/files/midi10.pdf)、[ESP-IDFホストAPI](https://docs.espressif.com/projects/esp-idf/en/v5.4.2/esp32s3/api-reference/peripherals/usb_host.html)
 
+外部音源との接続は、自己給電のクラス準拠USB MIDI音源と本体USBホストモードを基本構成とする。追加のUSBホストマイコンは不要。自己給電は音源の動作用電力をUSBから供給しないという条件であり、USB接続検出用VBUSやType-CのCC条件を省略できることを意味しない。接続回路でこれらを満たし、対象音源で列挙・Note On／Off・切断復帰を確認する。自己給電デバイスのVBUS監視については [EspressifのUSBデバイス仕様](https://docs.espressif.com/projects/esp-idf/en/v5.0.3/esp32s3/api-reference/peripherals/usb_device.html) を参照。
+
 ## 音程・発音
 
 入力別DC除去（係数0.9995）→63タップHamming FIR（カットオフ900Hz）→4分の1間引きで4kHzへ変換する。履歴は384サンプル、YIN解析の周期は32サンプル＝8ms。FIRの位相は受信ブロックの境界をまたいで保持する。
