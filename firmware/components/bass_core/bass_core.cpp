@@ -86,17 +86,35 @@ bool Config::valid() const {
     return true;
 }
 
-Pitch Yin::estimate(const float* samples, size_t count, float minimum_hz, float maximum_hz) {
-    if (!samples || !std::isfinite(minimum_hz) || !std::isfinite(maximum_hz) ||
+Yin::Range Yin::prepare(float minimum_hz, float maximum_hz, bool fast_tracking) {
+    if (!std::isfinite(minimum_hz) || !std::isfinite(maximum_hz) ||
         minimum_hz <= 0 || maximum_hz <= minimum_hz) return {};
-    const size_t maximum_lag = static_cast<size_t>(std::ceil(kAnalysisRate / minimum_hz));
+    const float largest = std::ceil(kAnalysisRate / minimum_hz);
+    if (!std::isfinite(largest) || largest < 3 || largest >= kHistory - 1) return {};
+    const size_t maximum_lag = static_cast<size_t>(largest);
     const size_t minimum_lag = std::max<size_t>(2, std::floor(kAnalysisRate / maximum_hz));
-    const size_t span = std::max<size_t>(64, (maximum_lag * 3 + 3) / 4);
+    const size_t span = fast_tracking ? std::max<size_t>(32, (maximum_lag + 1) / 2)
+        : std::max<size_t>(64, (maximum_lag * 3 + 3) / 4);
     const size_t needed = maximum_lag + span + 1;
-    if (maximum_lag + 1 >= difference_.size() || count < needed || minimum_lag >= maximum_lag) return {};
+    if (needed > kHistory || minimum_lag >= maximum_lag) return {};
+    return {minimum_hz, maximum_hz, minimum_lag, maximum_lag, span, needed};
+}
+
+Pitch Yin::estimate(const float* samples, size_t count, float minimum_hz, float maximum_hz,
+                    bool fast_tracking) {
+    return estimate(samples, count, prepare(minimum_hz, maximum_hz, fast_tracking));
+}
+
+Pitch Yin::estimate(const float* samples, size_t count, const Range& range) {
+    const auto [minimum_hz, maximum_hz, minimum_lag, maximum_lag, span, needed] = range;
+    if (!samples || !needed || count < needed || needed > kHistory ||
+        maximum_lag >= difference_.size() || minimum_lag < 2 || minimum_lag >= maximum_lag ||
+        span == 0 || span > kHistory - maximum_lag - 1 || maximum_lag + span + 1 != needed) return {};
     samples += count - needed;
     float cumulative = 0;
     difference_[0] = 1;
+    size_t best = minimum_lag;
+    bool descending = false;
     for (size_t tau = 1; tau <= maximum_lag; ++tau) {
         float sum = 0;
         for (size_t j = 0; j < span; ++j) {
@@ -105,14 +123,16 @@ Pitch Yin::estimate(const float* samples, size_t count, float minimum_hz, float 
         }
         cumulative += sum;
         difference_[tau] = cumulative > 1e-18f ? sum * tau / cumulative : 1.0f;
-    }
-    size_t best = minimum_lag;
-    for (size_t tau = minimum_lag; tau < maximum_lag; ++tau) {
-        if (difference_[tau] < difference_[best]) best = tau;
-        if (difference_[tau] < 0.15f) {
-            while (tau + 1 < maximum_lag && difference_[tau + 1] < difference_[tau]) ++tau;
-            best = tau;
-            break;
+        // The cumulative normalization at tau only depends on smaller lags.
+        // Stop after the first threshold trough plus its interpolation neighbor.
+        if (tau >= minimum_lag) {
+            if (descending) {
+                if (tau == maximum_lag || difference_[tau] >= difference_[best]) break;
+                best = tau;
+            } else if (tau < maximum_lag) {
+                if (difference_[tau] < difference_[best]) best = tau;
+                if (difference_[tau] < 0.15f) { best = tau; descending = true; }
+            }
         }
     }
     if (difference_[best] > 0.25f) return {};
@@ -128,7 +148,16 @@ Pitch Yin::estimate(const float* samples, size_t count, float minimum_hz, float 
     return {hz, std::clamp(1 - difference_[best], 0.0f, 1.0f)};
 }
 
-Engine::Engine(Config config) : config_(config) {}
+void Engine::prepare() {
+    for (size_t i = 0; i < kMaxStrings; ++i) {
+        ranges_[i] = Yin::prepare(noteFrequency(config_.open_notes[i] - 1),
+                                  noteFrequency(config_.open_notes[i] + 25), config_.fast_tracking);
+        sustain_ranges_[i] = Yin::prepare(noteFrequency(config_.open_notes[i] - 1),
+                                          noteFrequency(config_.open_notes[i] + 25), false);
+    }
+}
+
+Engine::Engine(Config config) : config_(config) { prepare(); }
 
 bool Engine::stop(size_t index, MidiSink& sink) {
     auto& s = strings_[index];
@@ -155,17 +184,21 @@ bool Engine::configure(Config config, MidiSink& sink) {
     if (!config.valid()) return false;
     reset(sink);
     config_ = config;
+    prepare();
     return true;
 }
 
 bool Engine::analyze(size_t index, MidiSink& sink) {
     auto& s = strings_[index];
     if (!s.gated) return true;
-    const size_t count = s.history_count;
+    const auto& range = s.note < 0 ? ranges_[index] : sustain_ranges_[index];
+    if (s.history_count < range.needed) return true;
+    const size_t count = range.needed;
     const size_t first = (s.history_pos + kHistory - count) % kHistory;
-    for (size_t j = 0; j < count; ++j) scratch_[j] = s.history[(first + j) % kHistory];
-    const auto pitch = yin_.estimate(scratch_.data(), count,
-        noteFrequency(config_.open_notes[index] - 1), noteFrequency(config_.open_notes[index] + 25));
+    const size_t contiguous = std::min(count, kHistory - first);
+    std::copy_n(s.history.data() + first, contiguous, scratch_.data());
+    std::copy_n(s.history.data(), count - contiguous, scratch_.data() + contiguous);
+    const auto pitch = yin_.estimate(scratch_.data(), count, range);
     s.hz = pitch.hz;
     s.confidence = pitch.confidence;
     if (pitch.hz <= 0 || pitch.confidence < config_.confidence_min) {
@@ -206,9 +239,10 @@ bool Engine::analyze(size_t index, MidiSink& sink) {
     return true;
 }
 
-bool Engine::process(const int16_t* samples, size_t frames, MidiSink& sink) {
+bool Engine::process(const int16_t* samples, size_t frames, MidiSink& sink, bool track_pitch) {
     if (!config_.valid() || (!samples && frames)) return false;
     if (!frames) return true;
+    if (tracking_ != track_pitch) { reset(sink); tracking_ = track_pitch; }
     // Frames may be split into arbitrary chunks without changing FIR/downsample phase.
     for (size_t frame = 0; frame < frames; ++frame) {
         ++input_frames_;
@@ -224,9 +258,14 @@ bool Engine::process(const int16_t* samples, size_t frames, MidiSink& sink) {
             s.dc_output = y;
             // A 2 ms power smoother; thresholds are RMS in normalized full scale.
             s.rms += (y * y - s.rms) * (1.0f / 32.0f);
+            if (!track_pitch) continue; // Retain input levels/clips, skip FIR and YIN.
+            s.fir[s.fir_pos] = s.fir[s.fir_pos + kFirTaps] = y;
+            if (++s.fir_pos == kFirTaps) s.fir_pos = 0;
+            if (!decimate) continue;
+            // Evaluate the envelope at 4 kHz; matched four-sample smoothing constants.
             const float envelope = std::sqrt(std::max(0.0f, s.rms));
             const float old_envelope = s.envelope;
-            s.envelope += (envelope - s.envelope) * (envelope > s.envelope ? 0.01f : 0.001f);
+            s.envelope += (envelope - s.envelope) * (envelope > s.envelope ? 0.03940399f : 0.003994004f);
             const bool attack = !s.gated && s.envelope >= config_.gate_on;
             // Re-picking after at least 100 ms restarts the observation window.
             const bool repick = s.note >= 0 && input_frames_ - s.last_attack > kInputRate / 10 &&
@@ -250,24 +289,25 @@ bool Engine::process(const int16_t* samples, size_t frames, MidiSink& sink) {
                     }
                 } else s.below_gate_since = 0;
             }
-            s.fir[s.fir_pos] = y;
-            s.fir_pos = (s.fir_pos + 1) % kFirTaps;
-            if (decimate) {
-                float filtered = 0;
-                size_t p = s.fir_pos;
-                for (size_t tap = 0; tap < kFirTaps; ++tap) {
-                    p = p ? p - 1 : kFirTaps - 1;
-                    filtered += s.fir[p] * kDecimatorFir[tap];
-                }
+            {
+                const float* window = s.fir.data() + s.fir_pos;
+                float filtered = window[kFirTaps / 2] * kDecimatorFir[kFirTaps / 2];
+                for (size_t tap = 0; tap < kFirTaps / 2; ++tap)
+                    filtered += (window[tap] + window[kFirTaps - 1 - tap]) * kDecimatorFir[tap];
                 s.history[s.history_pos] = filtered;
                 s.history_pos = (s.history_pos + 1) % kHistory;
                 s.history_count = std::min(s.history_count + 1, kHistory);
             }
         }
-        if (decimate && ++analysis_phase_ == 32) {
-            analysis_phase_ = 0;
+        if (decimate && track_pitch) {
+            if (++analysis_phase_ == kConservativeHop) analysis_phase_ = 0;
+            // Spread string estimates across the hop instead of one five-string burst.
             for (size_t i = 0; i < config_.string_count; ++i) {
-                if (!analyze(i, sink)) { reset(sink, false); return false; }
+                const size_t hop = config_.fast_tracking && strings_[i].note < 0
+                    ? kFastHop : kConservativeHop;
+                if (analysis_phase_ % hop == i * hop / config_.string_count && !analyze(i, sink)) {
+                    reset(sink, false); return false;
+                }
             }
         }
     }

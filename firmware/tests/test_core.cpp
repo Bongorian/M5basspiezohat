@@ -89,7 +89,7 @@ void pitch() {
     for (auto& sample : samples) { random = random * 1664525u + 1013904223u; sample = (int32_t(random >> 16) - 32768) / 32768.0f; }
     REQUIRE(yin.estimate(samples.data(), samples.size(), 29, 500).hz == 0);
     REQUIRE(yin.estimate(samples.data(), 10, 29, 500).hz == 0);
-    std::puts("PASS pitch: Low B through G3, harmonic-rich signal, silence and noise");
+    std::puts("PASS pitch: Low B through G4, harmonic-rich signal, silence and noise");
 }
 
 void polyphonic() {

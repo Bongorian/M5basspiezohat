@@ -11,6 +11,7 @@ M5basspiezohat R1の5入力をES7210×2からTDM/DMAで取得し、弦別の音�
 - USB MIDIとUSB CDC診断の複合デバイス。液晶表示、ボタン操作、入力スロット変更。
 - USB MIDIホスト送信。モードをNVSへ保存し、再起動でデバイス／ホストを切り替える。
 - USB再接続、DMA欠損、送信キュー不足時のAll Sound Offと解析履歴のクリア。
+- 発音開始は短い観測＋4ms更新、持続音は長い観測＋8ms更新。弦ごとの判定時刻を分散し、USBホストでは複数イベントをまとめて送信する。
 
 ## 標準設定
 
@@ -25,6 +26,7 @@ M5basspiezohat R1の5入力をES7210×2からTDM/DMAで取得し、弦別の音�
 | 発音／停止ゲート | 正規化RMS 0.004／0.002 |
 | MIDI | 全弦をチャンネル1へ送信、Pitch Bendなし |
 | 起動 | ミュート。確認後に `arm` またはAボタンで発音開始 |
+| 音程追従 | 高速開始設定を有効。持続音は長い観測へ戻す |
 
 USB-Cは標準でMIDI**デバイス**として動作する。PC、USB MIDIホスト、USBホスト端子のある音源へ接続する。通常のUSBデバイス端子だけを持つ音源へ接続する場合は、後述のホストモードと外部VBUS給電を使用できる。DIN MIDI出力は搭載していない。デバイスモードのUSB VID/PIDは開発用設定 `303A:4001`。
 
@@ -61,6 +63,8 @@ bash firmware/tools/build.sh menuconfig
 
 `M5basspiezohat` メニューで弦数、スロット、ゲート、PGA、MIDIチャンネル、弦別チャンネル、Pitch Bend、起動ミュート、TDM形式を設定する。4弦設定はJ1〜J4=E1／A1／D2／G2。弦別チャンネルは基本チャンネルから連続して使用し、最後が16を超える設定では発音しない。スロット重複、停止ゲート以上に低い発音ゲートも無効設定となる。
 
+`Short startup observation and 4 ms initial pitch update`（`CONFIG_BASS_FAST_TRACKING`）は標準で有効。無効にすると発音開始から長い観測＋8ms更新を使う。どちらも確信度0.85と2回の安定判定を維持する。計算処理の最適化は両設定で有効。比較値と実機での確認条件は [処理時間と発音遅延](performance.md) を参照。
+
 TDM形式のPhilipsはカスケード評価用の別設定。スロットの並びも変わり得るため、形式を変更したら全入力を再確認する。任意のチューニングは `main/board.hpp` の `open_notes` を変更する。
 
 ## 書き込み
@@ -73,7 +77,7 @@ bash firmware/tools/build.sh -p /dev/ttyACM0 flash
 
 接続できない場合は本体のダウンロードモードへ入れて再試行する。起動後は複合USBデバイスへ切り替わるため、CDCポート番号が変わる場合がある。[本体の公式資料](https://docs.m5stack.com/en/core/StickS3)も参照。
 
-`release/m5basspiezohat-sticks3-0.1.0.zip` は標準設定でのビルド済みファームウェア。展開先でPython環境に `esptool==4.9.0` を導入し、次のように書き込める。ブートローダ、パーティション、アプリをそれぞれ指定し、NVS領域の一括消去は行わない。
+`release/m5basspiezohat-sticks3-0.2.0.zip` は高速開始設定を含む標準設定でのビルド済みファームウェア。0.1.0のZIPも比較用に保持する。展開先でPython環境に `esptool==4.9.0` を導入し、次のように書き込める。ブートローダ、パーティション、アプリをそれぞれ指定し、NVS領域の一括消去は行わない。
 
 ```sh
 python -m esptool --chip esp32s3 --port /dev/ttyACM0 --baud 460800 write_flash \
@@ -120,11 +124,11 @@ python3 firmware/tools/console.py /dev/ttyACM0 arm
 | `test` | 設定した基本チャンネルで固定ノート36を発音。A長押しでも実行 |
 | `role [host\|device]` | USB役割の確認／NVS保存と再起動 |
 
-`dma_ovf`、`queue_drop`、`read_err`、`midi_drop`、`gaps` が増加しないことを確認する。最大処理時間だけで平均負荷は判断しない。`dsp_us` の増分を観測時間と比較し、10分以上の連続取得で欠損を調べる。`clips` が増える場合はPGAを下げ、入力振幅と前段回路を確認する。
+`dma_ovf`、`queue_drop`、`read_err`、`midi_drop`、`gaps` が増加しないことを確認する。`queue_peak` は取得キューからブロックを取り出した直後の最大待ちブロック数で、1ブロックは2ms。最大処理時間だけで平均負荷は判断しない。`dsp_us`／`max_dsp_us` は音程処理とスロット診断の経過時間を測り、タスクの割り込みを含み得る。共有状態の更新・USB・LCDの時間は含まない。`dsp_us` の増分を観測時間と比較し、10分以上の連続取得で欠損を調べる。状態の公開は16msごと。`clips` が増える場合はPGAを下げ、入力振幅と前段回路を確認する。
 
 ## 検証と制約
 
-ホストテストは合成信号を使用し、Low B〜G3、倍音優勢波形、5入力同時検出、無音、DC、ノイズ、クリップ、任意サイズの受信ブロック、Velocity、Pitch Bend、再ピッキング、スロット変更、送信失敗、同音の共有とチャンネル割り当てを確認する。
+ホストテストは合成信号を使用し、Low B〜G4、倍音優勢波形、5入力同時検出、無音、DC、ノイズ、クリップ、任意サイズの受信ブロック、Velocity、Pitch Bend、再ピッキング、スロット変更、送信失敗、同音の共有とチャンネル割り当てを確認する。
 
 ```sh
 cmake -S firmware/tests -B firmware/build-host -G Ninja
@@ -134,7 +138,7 @@ ctest --test-dir firmware/build-host --output-on-failure
 
 標準でAddressSanitizer／UndefinedBehaviorSanitizerを有効にする。GitHub ActionsでもホストテストとESP32-S3ビルドを実行する。
 
-標準設定の合成開放音では、入力開始から最初のNote OnまでB0=80ms、E1=64ms、A1=48ms、D2=48ms、G2=40ms分のサンプルを使用した。ADC・USB・音源遅延と実機のCPU処理時間を含まない。演奏時の遅延保証ではない。
+標準設定の合成開放音では、入力開始から最初のNote OnまでB0=64ms、E1=48ms、A1=40ms、D2=32ms、G2=28ms分のサンプルを使用した。これは各弦を単独の1入力設定で評価した結果で、5入力時は弦ごとに判定位相が異なる。ADC・USB・音源遅延と実機のCPU処理時間を含まない。演奏時の遅延保証ではない。
 
 実機ではADCのリビジョン、8スロットの出力順、クロック、低域HPF、USBの両役割、CPU余裕、弦間漏れを確認する必要がある。レジスタの読み戻しが成功しても音声フレームの正しさは保証されない。USB役割だけをNVSへ保存し、スロット・ゲート・ゲインはビルド設定で管理する。OTAは実装していない。
 

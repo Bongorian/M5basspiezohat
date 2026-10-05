@@ -37,7 +37,8 @@ void UsbHostMidi::event(const usb_host_client_event_msg_t* event, void* context)
 void UsbHostMidi::complete(usb_transfer_t* transfer) {
     auto& self = *static_cast<UsbHostMidi*>(transfer->context);
     self.busy_ = false;
-    if (!self.closing_ && (transfer->status != USB_TRANSFER_STATUS_COMPLETED || transfer->actual_num_bytes != 4)) {
+    if (!self.closing_ && (transfer->status != USB_TRANSFER_STATUS_COMPLETED ||
+                          transfer->actual_num_bytes != transfer->num_bytes)) {
         ++self.errors_;
         self.fault_ = true;
         ESP_LOGW(tag, "MIDI OUT failed, status=%d; reconnect the device", transfer->status);
@@ -64,7 +65,7 @@ void UsbHostMidi::open(uint8_t address) {
     transfer_->bEndpointAddress = endpoint_.address;
     transfer_->callback = complete;
     transfer_->context = this;
-    transfer_->num_bytes = 4;
+    batch_.clear();
     busy_ = fault_ = cancel_sent_ = false;
     ESP_LOGI(tag, "MIDI OUT interface=%u endpoint=%02x packet=%u cable=0",
              endpoint_.interface_number, endpoint_.address, endpoint_.max_packet);
@@ -83,6 +84,7 @@ void UsbHostMidi::close() {
     usb_host_interface_release(client_, device_, endpoint_.interface_number);
     usb_host_device_close(client_, device_);
     device_ = nullptr; endpoint_ = {};
+    batch_.clear();
     closing_ = fault_ = cancel_sent_ = false;
 }
 
@@ -110,12 +112,17 @@ void UsbHostMidi::service() {
 }
 
 bool UsbHostMidi::write(const std::array<uint8_t, 4>& packet) {
-    if (!mounted() || busy_ || !transfer_) return false;
-    std::memcpy(transfer_->data_buffer, packet.data(), packet.size());
+    return mounted() && transfer_ && batch_.append(packet, endpoint_.max_packet);
+}
+
+void UsbHostMidi::flush() {
+    if (!mounted() || busy_ || !transfer_ || !batch_.size()) return;
+    std::memcpy(transfer_->data_buffer, batch_.data(), batch_.size());
+    transfer_->num_bytes = batch_.size();
     if (usb_host_transfer_submit(transfer_) != ESP_OK) {
-        ++errors_; fault_ = true; return false;
+        ++errors_; fault_ = true; batch_.clear(); return;
     }
+    batch_.clear();
     busy_ = true;
     submitted_at_ = esp_timer_get_time();
-    return true;
 }

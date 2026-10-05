@@ -24,6 +24,11 @@ inline bass::Config config() {
     if (c.string_count == 4) c.open_notes = {28, 33, 38, 43, 0};
     c.gate_on = CONFIG_BASS_GATE_ON_MILLI / 1000.0f;
     c.gate_off = CONFIG_BASS_GATE_OFF_MILLI / 1000.0f;
+#ifdef CONFIG_BASS_FAST_TRACKING
+    c.fast_tracking = true;
+#else
+    c.fast_tracking = false;
+#endif
 #ifdef CONFIG_BASS_PITCH_BEND
     c.pitch_bend = true;
 #endif

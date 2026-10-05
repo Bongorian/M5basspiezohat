@@ -1,4 +1,13 @@
 menu "M5basspiezohat"
+    config BASS_FAST_TRACKING
+        bool "Short startup observation and 4 ms initial pitch update"
+        default y
+        help
+            Start with a shorter YIN comparison window and 4 ms updates.
+            Sustained notes use the longer window and 8 ms updates.
+            Disable to use the longer window and 8 ms updates from startup.
+            Both modes retain two stable decisions and the confidence gate.
+            Shorter observations must be evaluated with the actual instrument.
     config BASS_STRING_COUNT
         int "Number of strings (J1 upwards: B E A D G, or E A D G)"
         range 4 5

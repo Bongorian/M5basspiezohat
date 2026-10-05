@@ -115,6 +115,7 @@ void UsbDevice::service() {
     }
     if (panic_pending_.exchange(false)) {
         xQueueReset(queue_);
+        if (host_mode_) host_.discardPending();
         pending_ = false;
         test_active_ = false;
         reset_step_ = 0;
@@ -166,7 +167,7 @@ void UsbDevice::service() {
             while (tud_midi_available()) if (!tud_midi_packet_read(discarded)) break;
         }
     }
-    if (host_mode_) return;
+    if (host_mode_) { host_.flush(); return; }
     while (tud_cdc_available()) {
         const char ch = static_cast<char>(tud_cdc_read_char());
         if (ch == '\r' || ch == '\n') {

@@ -35,7 +35,7 @@ struct Status {
     std::array<float, bass::kSlots> slot_rms{}, slot_peak{};
     bass::Config config;
     uint64_t frames = 0, process_us = 0;
-    uint32_t max_process_us = 0, discontinuities = 0;
+    uint32_t max_process_us = 0, discontinuities = 0, max_queue_blocks = 0;
 };
 Status status;
 
@@ -82,6 +82,9 @@ void analysis_task(void*) {
     uint32_t previous_sequence = 0, previous_epoch = usb.epoch();
     bool first = true, previous_mute = muted.load(), previous_ready = usb.ready();
     std::array<float, bass::kSlots> slot_power{};
+    uint64_t process_us = 0;
+    uint32_t max_process_us = 0, discontinuities = 0, max_queue_blocks = 0;
+    uint32_t publish_counter = 0;
     for (;;) {
         Mapping mapping;
         while (xQueueReceive(controls, &mapping, 0) == pdTRUE) {
@@ -99,6 +102,7 @@ void analysis_task(void*) {
             previous_epoch = epoch;
         }
         if (xQueueReceive(audio_queue, &block, pdMS_TO_TICKS(10)) != pdTRUE) continue;
+        max_queue_blocks = std::max(max_queue_blocks, static_cast<uint32_t>(uxQueueMessagesWaiting(audio_queue)));
         const bool gap = block.discontinuity || (!first && block.sequence != previous_sequence + 1);
         first = false;
         previous_sequence = block.sequence;
@@ -109,8 +113,7 @@ void analysis_task(void*) {
         }
         const int64_t start = esp_timer_get_time();
         if (engine.config().valid() && router.valid(engine.config().string_count) &&
-            !engine.process(block.samples.data(), board::kBlockFrames, sink)) usb.panic();
-        const uint32_t elapsed = static_cast<uint32_t>(esp_timer_get_time() - start);
+            !engine.process(block.samples.data(), board::kBlockFrames, sink, !now_mute && now_ready)) usb.panic();
         std::array<float, bass::kSlots> peaks{};
         for (size_t slot = 0; slot < bass::kSlots; ++slot) {
             float sum = 0;
@@ -121,13 +124,21 @@ void analysis_task(void*) {
             }
             slot_power[slot] += (sum / board::kBlockFrames - slot_power[slot]) * 0.1f;
         }
+        // Include level diagnostics in the processing wall-time measurement.
+        const uint32_t elapsed = static_cast<uint32_t>(esp_timer_get_time() - start);
+        process_us += elapsed;
+        max_process_us = std::max(max_process_us, elapsed);
+        if (gap) ++discontinuities;
+        // UI/CDC need a 16 ms snapshot, not cross-core locking every 2 ms block.
+        if (++publish_counter % 8 && !gap) continue;
         xSemaphoreTake(status_mutex, portMAX_DELAY);
         status.strings = engine.status();
         status.config = engine.config();
         status.frames = engine.frames();
-        status.process_us += elapsed;
-        status.max_process_us = std::max(status.max_process_us, elapsed);
-        if (gap) ++status.discontinuities;
+        status.process_us = process_us;
+        status.max_process_us = max_process_us;
+        status.discontinuities = discontinuities;
+        status.max_queue_blocks = max_queue_blocks;
         for (size_t slot = 0; slot < bass::kSlots; ++slot) {
             status.slot_rms[slot] = std::sqrt(slot_power[slot]);
             status.slot_peak[slot] = peaks[slot];
@@ -144,13 +155,14 @@ void console(const char* command, UsbDevice& device, void*) {
     } else if (!std::strcmp(command, "status")) {
         const auto s = snapshot();
         device.print("adc=%s usb=%s muted=%d error=%s blocks=%lu dma_ovf=%lu queue_drop=%lu "
-                     "read_err=%lu midi_drop=%lu gaps=%lu max_dsp_us=%lu dsp_us=%llu heap=%lu cdc_drop=%lu\r\n",
+                     "read_err=%lu midi_drop=%lu gaps=%lu queue_peak=%lu max_dsp_us=%lu dsp_us=%llu heap=%lu cdc_drop=%lu\r\n",
                      adc_ready.load() ? "ok" : "error", usb.ready() ? "ready" : "offline",
                      muted.load(), esp_err_to_name(hardware_error.load()),
                      static_cast<unsigned long>(received_blocks.load()),
                      static_cast<unsigned long>(audio.overflows()), static_cast<unsigned long>(queue_drops.load()),
                      static_cast<unsigned long>(read_errors.load()), static_cast<unsigned long>(usb.dropped()),
-                     static_cast<unsigned long>(s.discontinuities), static_cast<unsigned long>(s.max_process_us),
+                     static_cast<unsigned long>(s.discontinuities), static_cast<unsigned long>(s.max_queue_blocks),
+                     static_cast<unsigned long>(s.max_process_us),
                      static_cast<unsigned long long>(s.process_us),
                      static_cast<unsigned long>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL)),
                      static_cast<unsigned long>(usb.consoleDrops()));

@@ -11,6 +11,8 @@ constexpr uint32_t kInputRate = 16000;
 constexpr uint32_t kAnalysisRate = 4000;
 constexpr size_t kHistory = 384;
 constexpr size_t kFirTaps = 63;
+constexpr size_t kFastHop = 16; // 4 ms at the analysis rate.
+constexpr size_t kConservativeHop = 32;
 
 struct MidiMessage {
     uint8_t status, data1, data2;
@@ -47,6 +49,7 @@ struct Config {
     float gate_off = 0.002f;
     float confidence_min = 0.85f;
     bool pitch_bend = false;
+    bool fast_tracking = true;
     bool valid() const;
 };
 
@@ -57,8 +60,14 @@ struct Pitch {
 
 class Yin {
 public:
+    struct Range {
+        float minimum_hz = 0, maximum_hz = 0;
+        size_t minimum_lag = 0, maximum_lag = 0, span = 0, needed = 0;
+    };
+    static Range prepare(float minimum_hz, float maximum_hz, bool fast_tracking = true);
+    Pitch estimate(const float* samples, size_t count, const Range& range);
     Pitch estimate(const float* samples, size_t count, float minimum_hz,
-                   float maximum_hz);
+                   float maximum_hz, bool fast_tracking = true);
 private:
     std::array<float, kHistory> difference_{};
 };
@@ -76,14 +85,16 @@ class Engine {
 public:
     explicit Engine(Config config);
     bool configure(Config config, MidiSink& sink);
-    bool process(const int16_t* interleaved, size_t frames, MidiSink& sink);
+    bool process(const int16_t* interleaved, size_t frames, MidiSink& sink,
+                 bool track_pitch = true);
     void reset(MidiSink& sink, bool send_note_off = true);
     const Config& config() const { return config_; }
     std::array<StringStatus, kMaxStrings> status() const;
     uint64_t frames() const { return input_frames_; }
 private:
     struct StringState {
-        std::array<float, kFirTaps> fir{};
+        // Mirrored ring: one contiguous chronological window, no inner-loop wrap.
+        std::array<float, kFirTaps * 2> fir{};
         std::array<float, kHistory> history{};
         size_t fir_pos = 0, history_pos = 0, history_count = 0;
         float previous_input = 0, dc_output = 0, envelope = 0, attack_peak = 0;
@@ -99,9 +110,13 @@ private:
     std::array<StringState, kMaxStrings> strings_{};
     std::array<float, kHistory> scratch_{};
     Yin yin_;
+    std::array<Yin::Range, kMaxStrings> ranges_{};
+    std::array<Yin::Range, kMaxStrings> sustain_ranges_{};
+    void prepare();
     uint64_t input_frames_ = 0;
     uint32_t decimation_phase_ = 0;
     uint32_t analysis_phase_ = 0;
+    bool tracking_ = true;
 };
 
 float noteFrequency(int note);

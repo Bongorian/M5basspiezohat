@@ -1,0 +1,42 @@
+2026-10-06 local desktop sample; not ESP32-S3 execution time.
+Intel Xeon E3-1535M v6, GCC 13.3.0, C++17 -O2, no sanitizers.
+
+0.1.0 reference (e75defa):
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Reference core: original fixed window and update timing.
+one-Low-B ns/frame=128.4 block_p95_us=12.8 block_max_us=41.2 checksum=1340
+five-open ns/frame=353.8 block_p95_us=31.7 block_max_us=84.6 checksum=6960
+five-fret12 ns/frame=344.3 block_p95_us=30.8 block_max_us=77.8 checksum=7200
+five-fret24 ns/frame=342.4 block_p95_us=32.0 block_max_us=81.2 checksum=7435
+five-noise ns/frame=364.6 block_p95_us=39.8 block_max_us=94.4 checksum=0
+five-silence ns/frame=108.9 block_p95_us=5.1 block_max_us=35.5 checksum=0
+
+0.2.0 standard:
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=fast tracking=active
+one-Low-B ns/frame=108.4 block_p95_us=11.5 block_max_us=37.8 checksum=1340
+five-open ns/frame=281.0 block_p95_us=16.1 block_max_us=231.3 checksum=6950
+five-fret12 ns/frame=188.8 block_p95_us=9.4 block_max_us=39.7 checksum=7200
+five-fret24 ns/frame=135.5 block_p95_us=6.1 block_max_us=26.5 checksum=7435
+five-noise ns/frame=343.5 block_p95_us=39.5 block_max_us=532.9 checksum=0
+five-silence ns/frame=78.5 block_p95_us=4.0 block_max_us=17.0 checksum=0
+
+0.2.0 long startup:
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=conservative tracking=active
+one-Low-B ns/frame=116.0 block_p95_us=11.5 block_max_us=50.5 checksum=1340
+five-open ns/frame=281.0 block_p95_us=15.9 block_max_us=71.0 checksum=6960
+five-fret12 ns/frame=185.5 block_p95_us=9.4 block_max_us=36.5 checksum=7200
+five-fret24 ns/frame=137.6 block_p95_us=6.4 block_max_us=31.7 checksum=7435
+five-noise ns/frame=295.8 block_p95_us=17.3 block_max_us=57.8 checksum=0
+five-silence ns/frame=74.6 block_p95_us=3.4 block_max_us=21.2 checksum=0
+
+0.2.0 muted:
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=fast tracking=muted
+one-Low-B ns/frame=6.3 block_p95_us=0.2 block_max_us=23.7 checksum=0
+five-open ns/frame=15.4 block_p95_us=0.5 block_max_us=26.7 checksum=0
+five-fret12 ns/frame=15.1 block_p95_us=0.5 block_max_us=4.0 checksum=0
+five-fret24 ns/frame=16.9 block_p95_us=0.5 block_max_us=26.9 checksum=0
+five-noise ns/frame=15.4 block_p95_us=0.5 block_max_us=13.2 checksum=0
+five-silence ns/frame=15.5 block_p95_us=0.5 block_max_us=3.8 checksum=0
