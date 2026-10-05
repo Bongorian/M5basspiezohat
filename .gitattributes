@@ -1,2 +1,24 @@
-# Preserve the upstream license text verbatim, including its original whitespace.
+# Preserve CAD and manufacturing exports byte-for-byte.
+*.csv -text whitespace=cr-at-eol
+*.svg -text whitespace=-blank-at-eol
+*.kicad_pcb -text
+*.kicad_sch -text
+*.kicad_mod -text
+*.gtl -text
+*.gbl -text
+*.g1 -text
+*.g2 -text
+*.gts -text
+*.gbs -text
+*.gtp -text
+*.gto -text
+*.gbo -text
+*.gm1 -text
+*.drl -text
+*.zip binary
+*.png binary
+*.glb binary
+*.blend binary
+
+# Preserve upstream license text verbatim.
 firmware/third_party_licenses/** -whitespace
