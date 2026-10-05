@@ -7,4 +7,4 @@ The project footprint library `hardware/sticks3-piezo-hat/PiezoHat.pretty/` cont
 - License: Creative Commons Attribution-ShareAlike 4.0, with the KiCad electronic-design exception. The supplied license document is retained in [KICAD_LIBRARIES_LICENSE.md](hardware/sticks3-piezo-hat/KICAD_LIBRARIES_LICENSE.md).
 - Changes: project-specific names, assembly markings, silkscreen placement, and ES7210 footprint geometry. The enclosure geometry is project-created.
 
-Manufacturer datasheets and previously downloaded third-party reference code are not redistributed here. The design documents link to their original sources. No blanket license is assigned to the original project design or scripts by this notice.
+Manufacturer datasheets and reference implementations are available at the upstream links in the design documents. No blanket license is assigned to the original project design or scripts by this notice.
