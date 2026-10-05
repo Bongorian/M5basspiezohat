@@ -43,6 +43,8 @@ Hat2ヘッダの嵌合、TDM取得、Low Bまでの周波数応答、弦間の�
 
 [クロストーク分離・校正学習の検討](docs/crosstalk-separation.md)には固定行列とFIR分離の導入条件を記載。同期CSVから固定混合行列を学習するオフライン評価ツールを含む。リアルタイム分離と実機学習は未実装。
 
+[Grove接続の外付けUSB MIDIホスト案](docs/grove-usb-midi-host.md)に、別USB端子を追加して本体USB-Cを維持する構成、通信・給電条件、LCSC部品候補を記載している。外部基板は未製作。
+
 [筐体モデル](mechanical/sticks3-hat-concept.md)は寸法・保持構造の検討用。蓋と下端受けの固定方法、ケーブル出口は未設計。
 
 ## ファイル構成
