@@ -1,0 +1,35 @@
+name: Firmware
+on:
+  push:
+    paths: ["firmware/**", ".github/workflows/firmware.yml"]
+  pull_request:
+    paths: ["firmware/**", ".github/workflows/firmware.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dsp-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S firmware/tests -B firmware/build-host -G Ninja
+      - run: cmake --build firmware/build-host
+      - run: ctest --test-dir firmware/build-host --output-on-failure
+      - run: python3 -m unittest discover -s firmware/tests -p 'test_*.py'
+  esp32s3:
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v5.4.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ESP32-S3 firmware
+        shell: bash
+        run: bash firmware/tools/build.sh
+      - name: Package binaries and notices
+        run: python3 firmware/tools/package.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m5basspiezohat-sticks3
+          path: |
+            firmware/release/*.zip
+            firmware/release/*.sha256
+          retention-days: 30

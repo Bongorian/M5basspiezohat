@@ -32,3 +32,11 @@
 /mechanical/sticks3-hat-concept.png
 /mechanical/sticks3-hat-layout.*
 /mechanical/create_concept.py
+# Firmware build environment and generated files
+/firmware/.tools/
+/firmware/build/
+/firmware/build-host/
+/firmware/managed_components/
+/firmware/sdkconfig
+/firmware/sdkconfig.old
+/firmware/.venv/

@@ -56,6 +56,6 @@ LCSC販売在庫とJLCPCB実装用在庫は個別に確認する。D1〜D5とJ6�
 
 ADC単体取得から2個カスケード取得へ進み、スロット対応、Low Bの低域応答、クリップ回復、弦間漏れを測定する。U4の割り込み出力はNCのため、ADC初期設定で割り込みを無効にする。
 
-音程検出・USB MIDIファームウェアは未実装。USB MIDIには接続先のUSBホスト機能が必要。筐体モデルは寸法・保持構造の検討用で、固定部とケーブル出口は未設計。
+音程検出・USB MIDIのESP-IDFファームウェアをリポジトリに収録。ビルドと合成信号テストは確認済み、実機は未検証。[導入・診断手順](https://github.com/Bongorian/M5basspiezohat/tree/main/firmware)に従って書き込み、入力スロットを確認する。標準はUSBデバイスで接続先にUSBホスト機能が必要。USBホストモードも搭載するが、StickS3はUSB-Cへ給電しないため、音源側への外部VBUS給電が必要。筐体モデルは寸法・保持構造の検討用で、固定部とケーブル出口は未設計。
 
 接続表・評価条件は [M5basspiezohatリポジトリ](https://github.com/Bongorian/M5basspiezohat) の基板仕様とファームウェア設計を参照。

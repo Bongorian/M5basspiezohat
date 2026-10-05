@@ -1,0 +1,64 @@
+menu "M5basspiezohat"
+    config BASS_STRING_COUNT
+        int "Number of strings (J1 upwards: B E A D G, or E A D G)"
+        range 4 5
+        default 5
+    config BASS_SLOT_J1
+        int "TDM slot for J1"
+        range 0 7
+        default 0
+    config BASS_SLOT_J2
+        int "TDM slot for J2"
+        range 0 7
+        default 1
+    config BASS_SLOT_J3
+        int "TDM slot for J3"
+        range 0 7
+        default 2
+    config BASS_SLOT_J4
+        int "TDM slot for J4"
+        range 0 7
+        default 3
+    config BASS_SLOT_J5
+        int "TDM slot for J5"
+        range 0 7
+        default 4
+    config BASS_GATE_ON_MILLI
+        int "Note-on RMS threshold in thousandths of full scale"
+        range 1 200
+        default 4
+    config BASS_GATE_OFF_MILLI
+        int "Note-off RMS threshold in thousandths of full scale"
+        range 1 199
+        default 2
+    config BASS_GAIN_DB
+        int "ADC PGA gain, dB (rounded down to steps of 3 dB)"
+        range 0 30
+        default 0
+    config BASS_MIDI_CHANNEL
+        int "MIDI output channel (base channel when strings are separate)"
+        range 1 16
+        default 1
+    config BASS_PER_STRING_CHANNELS
+        bool "Separate MIDI channel for each string"
+        default n
+        help
+            When disabled, all strings share one channel. Identical notes are held
+            until the last owning string releases them. When enabled, the base
+            channel plus the string count must not exceed MIDI channel 16.
+    config BASS_PITCH_BEND
+        bool "Per-string pitch bend (range +/-2 semitones)"
+        depends on BASS_PER_STRING_CHANNELS
+        default n
+    config BASS_START_MUTED
+        bool "Start muted until input slot mapping is checked"
+        default y
+    choice BASS_TDM_FORMAT
+        prompt "TDM format for cascade evaluation"
+        default BASS_TDM_DSP_A
+        config BASS_TDM_DSP_A
+            bool "DSP A (one BCLK pulse, sequential channel slots)"
+        config BASS_TDM_PHILIPS
+            bool "Philips (half-frame WS, odd/even channel grouping)"
+    endchoice
+endmenu

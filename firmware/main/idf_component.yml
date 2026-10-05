@@ -1,0 +1,6 @@
+dependencies:
+  idf: "==5.4.2"
+  m5stack/m5unified: "==0.2.25"
+  m5stack/m5gfx: "==0.2.32"
+  espressif/esp_tinyusb: "==1.7.6"
+  espressif/tinyusb: "==0.21.0~2"
