@@ -34,6 +34,8 @@ USB-Cは標準でMIDI**デバイス**として動作する。PC、USB MIDIホス
 
 **StickS3本体はUSB-CへVBUSを供給しない。** 本体回路図のUSB電源は入力経路で、固定したM5Unified v0.2.25の `setUsbOutput` はStickS3では動作しない。ホストモードには、音源のUSB端子へ5Vを供給し、StickS3側への逆流を防止できる外部給電アダプタなどの適切な接続回路が必要。電源をつないだだけのYケーブルや、動作が不明なハブは前提にしない。本体と音源の電源条件、Type-Cの役割・CC条件も接続機器に合わせて確認する。ソフトウェアのホスト切り替えだけでバス給電型音源へ直結できることを意味しない。[本体資料・回路図](https://docs.m5stack.com/en/core/StickS3#schematics)
 
+公開回路図ではCC1／CC2に5.1kΩの固定プルダウン（R3／R4）がある。ファームウェアはこの抵抗を切り替えられず、USB-CのDRP／電力役割の切り替えは実装しない。ホストPHYで通信できることと、Type-Cポートが適切なホスト接続を構成できることを分けて評価する。外部接続回路はVBUSだけでなくCC条件も満たす必要があり、一般的なUSB-Cケーブルでの音源直結は保証しない。
+
 ホストはFull-Speedのクラス準拠USB MIDI 1.0、最初の設定のalternate setting 0、最初の対応するbulk OUT、cable 0へ送信する。複合デバイス内のMIDIインターフェースにも対応する。MIDI 2.0専用、独自ドライバ必須、複数音源・ハブ、多ケーブル選択、MIDI受信は対象外。MIDI端子のあるUSB音源・USB MIDIインターフェースを外部デバイスとして接続する。[ESP-IDFホスト仕様](https://docs.espressif.com/projects/esp-idf/en/v5.4.2/esp32s3/api-reference/peripherals/usb_host.html)
 
 ホストモード中は同じUSB-CでPCへCDC診断を提供できない。LCDに `HOST` と接続状態を表示する。Aクリックで発音切替、Aを1秒長押しで固定ノート試験、BクリックでPanic、Bを2秒長押しでデバイスモードへ戻る。USBは対応音源の列挙・初期Panic完了後に `ready` となる。
