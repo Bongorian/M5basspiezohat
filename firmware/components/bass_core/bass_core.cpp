@@ -6,6 +6,24 @@
 #include <cstdlib>
 
 namespace bass {
+namespace {
+// Four independent accumulators let loads/multiplies overlap without a long
+// dependent sum. No approximation, platform intrinsics or fast-math required.
+float squaredDifference(const float* a, const float* b, size_t count) {
+    float s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+    size_t j = 0;
+    for (; j + 3 < count; j += 4) {
+        const float d0 = a[j] - b[j], d1 = a[j + 1] - b[j + 1];
+        const float d2 = a[j + 2] - b[j + 2], d3 = a[j + 3] - b[j + 3];
+        s0 += d0 * d0; s1 += d1 * d1;
+        s2 += d2 * d2; s3 += d3 * d3;
+    }
+    float sum = (s0 + s1) + (s2 + s3);
+    for (; j < count; ++j) { const float d = a[j] - b[j]; sum += d * d; }
+    return sum;
+}
+} // namespace
+
 float noteFrequency(int note) { return 440.0f * std::exp2((note - 69) / 12.0f); }
 
 bool parseSlotMapping(const char* text, size_t count,
@@ -116,11 +134,7 @@ Pitch Yin::estimate(const float* samples, size_t count, const Range& range) {
     size_t best = minimum_lag;
     bool descending = false;
     for (size_t tau = 1; tau <= maximum_lag; ++tau) {
-        float sum = 0;
-        for (size_t j = 0; j < span; ++j) {
-            const float delta = samples[j] - samples[j + tau];
-            sum += delta * delta;
-        }
+        const float sum = squaredDifference(samples, samples + tau, span);
         cumulative += sum;
         difference_[tau] = cumulative > 1e-18f ? sum * tau / cumulative : 1.0f;
         // The cumulative normalization at tau only depends on smaller lags.
@@ -149,11 +163,20 @@ Pitch Yin::estimate(const float* samples, size_t count, const Range& range) {
 }
 
 void Engine::prepare() {
-    for (size_t i = 0; i < kMaxStrings; ++i) {
-        ranges_[i] = Yin::prepare(noteFrequency(config_.open_notes[i] - 1),
-                                  noteFrequency(config_.open_notes[i] + 25), config_.fast_tracking);
-        sustain_ranges_[i] = Yin::prepare(noteFrequency(config_.open_notes[i] - 1),
-                                          noteFrequency(config_.open_notes[i] + 25), false);
+    valid_ = config_.valid();
+    if (!valid_) return;
+    velocity_floor_db_ = 20 * std::log10(config_.gate_on);
+    velocity_range_db_ = std::max(1.0f, -8.0f - velocity_floor_db_);
+    const size_t startup_hop = config_.fast_tracking ? kFastHop : kConservativeHop;
+    for (size_t i = 0; i < config_.string_count; ++i) {
+        const float low = noteFrequency(config_.open_notes[i] - 1);
+        const float high = noteFrequency(config_.open_notes[i] + 25);
+        ranges_[i] = Yin::prepare(low, high, config_.fast_tracking);
+        sustain_ranges_[i] = Yin::prepare(low, high, false);
+        const size_t phase = i * startup_hop / config_.string_count;
+        startup_phases_[i] = 1u << phase;
+        if (config_.fast_tracking) startup_phases_[i] |= 1u << (phase + kFastHop);
+        sustain_phases_[i] = 1u << (i * kConservativeHop / config_.string_count);
     }
 }
 
@@ -175,7 +198,7 @@ bool Engine::stop(size_t index, MidiSink& sink) {
 }
 
 void Engine::reset(MidiSink& sink, bool send_note_off) {
-    if (send_note_off) for (size_t i = 0; i < config_.string_count; ++i) stop(i, sink);
+    if (send_note_off) for (size_t i = 0; i < std::min<size_t>(config_.string_count, kMaxStrings); ++i) stop(i, sink);
     strings_ = {};
     decimation_phase_ = analysis_phase_ = 0;
 }
@@ -194,11 +217,8 @@ bool Engine::analyze(size_t index, MidiSink& sink) {
     const auto& range = s.note < 0 ? ranges_[index] : sustain_ranges_[index];
     if (s.history_count < range.needed) return true;
     const size_t count = range.needed;
-    const size_t first = (s.history_pos + kHistory - count) % kHistory;
-    const size_t contiguous = std::min(count, kHistory - first);
-    std::copy_n(s.history.data() + first, contiguous, scratch_.data());
-    std::copy_n(s.history.data(), count - contiguous, scratch_.data() + contiguous);
-    const auto pitch = yin_.estimate(scratch_.data(), count, range);
+    const float* window = s.history.data() + s.history_pos + kHistory - count;
+    const auto pitch = yin_.estimate(window, count, range);
     s.hz = pitch.hz;
     s.confidence = pitch.confidence;
     if (pitch.hz <= 0 || pitch.confidence < config_.confidence_min) {
@@ -219,9 +239,8 @@ bool Engine::analyze(size_t index, MidiSink& sink) {
         (note != s.note && std::fabs(fractional_note - s.note) > change_limit))) {
         if (!stop(index, sink)) return false;
         const float db = 20 * std::log10(std::max(s.attack_peak, config_.gate_on));
-        const float floor_db = 20 * std::log10(config_.gate_on);
-        const int velocity = std::clamp(static_cast<int>(20 + 107 * (db - floor_db) /
-                                               std::max(1.0f, -8.0f - floor_db)), 1, 127);
+        const int velocity = std::clamp(static_cast<int>(20 + 107 * (db - velocity_floor_db_) /
+                                               velocity_range_db_), 1, 127);
         if (!sink.send({static_cast<uint8_t>(0x90 | index), static_cast<uint8_t>(note),
                         static_cast<uint8_t>(velocity)})) return false;
         s.note = note;
@@ -240,7 +259,7 @@ bool Engine::analyze(size_t index, MidiSink& sink) {
 }
 
 bool Engine::process(const int16_t* samples, size_t frames, MidiSink& sink, bool track_pitch) {
-    if (!config_.valid() || (!samples && frames)) return false;
+    if (!valid_ || (!samples && frames)) return false;
     if (!frames) return true;
     if (tracking_ != track_pitch) { reset(sink); tracking_ = track_pitch; }
     // Frames may be split into arbitrary chunks without changing FIR/downsample phase.
@@ -294,18 +313,18 @@ bool Engine::process(const int16_t* samples, size_t frames, MidiSink& sink, bool
                 float filtered = window[kFirTaps / 2] * kDecimatorFir[kFirTaps / 2];
                 for (size_t tap = 0; tap < kFirTaps / 2; ++tap)
                     filtered += (window[tap] + window[kFirTaps - 1 - tap]) * kDecimatorFir[tap];
-                s.history[s.history_pos] = filtered;
-                s.history_pos = (s.history_pos + 1) % kHistory;
+                s.history[s.history_pos] = s.history[s.history_pos + kHistory] = filtered;
+                if (++s.history_pos == kHistory) s.history_pos = 0;
                 s.history_count = std::min(s.history_count + 1, kHistory);
             }
         }
         if (decimate && track_pitch) {
-            if (++analysis_phase_ == kConservativeHop) analysis_phase_ = 0;
+            analysis_phase_ = (analysis_phase_ + 1) & (kConservativeHop - 1);
+            const uint32_t phase = 1u << analysis_phase_;
             // Spread string estimates across the hop instead of one five-string burst.
             for (size_t i = 0; i < config_.string_count; ++i) {
-                const size_t hop = config_.fast_tracking && strings_[i].note < 0
-                    ? kFastHop : kConservativeHop;
-                if (analysis_phase_ % hop == i * hop / config_.string_count && !analyze(i, sink)) {
+                const uint32_t phases = strings_[i].note < 0 ? startup_phases_[i] : sustain_phases_[i];
+                if ((phases & phase) && !analyze(i, sink)) {
                     reset(sink, false); return false;
                 }
             }

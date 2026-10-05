@@ -77,7 +77,7 @@ bash firmware/tools/build.sh -p /dev/ttyACM0 flash
 
 接続できない場合は本体のダウンロードモードへ入れて再試行する。起動後は複合USBデバイスへ切り替わるため、CDCポート番号が変わる場合がある。[本体の公式資料](https://docs.m5stack.com/en/core/StickS3)も参照。
 
-`release/m5basspiezohat-sticks3-0.2.0.zip` は高速開始設定を含む標準設定でのビルド済みファームウェア。0.1.0のZIPも比較用に保持する。展開先でPython環境に `esptool==4.9.0` を導入し、次のように書き込める。ブートローダ、パーティション、アプリをそれぞれ指定し、NVS領域の一括消去は行わない。
+`release/m5basspiezohat-sticks3-0.2.1.zip` は高速開始設定を含む標準設定でのビルド済みファームウェア。0.1.0と0.2.0のZIPも比較用に保持する。展開先でPython環境に `esptool==4.9.0` を導入し、次のように書き込める。ブートローダ、パーティション、アプリをそれぞれ指定し、NVS領域の一括消去は行わない。
 
 ```sh
 python -m esptool --chip esp32s3 --port /dev/ttyACM0 --baud 460800 write_flash \

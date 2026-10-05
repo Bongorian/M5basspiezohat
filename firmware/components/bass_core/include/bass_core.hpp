@@ -13,6 +13,7 @@ constexpr size_t kHistory = 384;
 constexpr size_t kFirTaps = 63;
 constexpr size_t kFastHop = 16; // 4 ms at the analysis rate.
 constexpr size_t kConservativeHop = 32;
+static_assert(kFastHop == 16 && kConservativeHop == 32, "Scheduling masks cover 32 analysis samples");
 
 struct MidiMessage {
     uint8_t status, data1, data2;
@@ -89,13 +90,15 @@ public:
                  bool track_pitch = true);
     void reset(MidiSink& sink, bool send_note_off = true);
     const Config& config() const { return config_; }
+    bool valid() const { return valid_; }
     std::array<StringStatus, kMaxStrings> status() const;
     uint64_t frames() const { return input_frames_; }
 private:
     struct StringState {
         // Mirrored ring: one contiguous chronological window, no inner-loop wrap.
         std::array<float, kFirTaps * 2> fir{};
-        std::array<float, kHistory> history{};
+        // Mirrored history lets YIN read a contiguous window directly.
+        std::array<float, kHistory * 2> history{};
         size_t fir_pos = 0, history_pos = 0, history_count = 0;
         float previous_input = 0, dc_output = 0, envelope = 0, attack_peak = 0;
         float rms = 0, hz = 0, confidence = 0;
@@ -108,15 +111,17 @@ private:
     bool stop(size_t index, MidiSink& sink);
     Config config_;
     std::array<StringState, kMaxStrings> strings_{};
-    std::array<float, kHistory> scratch_{};
     Yin yin_;
     std::array<Yin::Range, kMaxStrings> ranges_{};
     std::array<Yin::Range, kMaxStrings> sustain_ranges_{};
+    std::array<uint32_t, kMaxStrings> startup_phases_{}, sustain_phases_{};
+    float velocity_floor_db_ = 0, velocity_range_db_ = 1;
     void prepare();
     uint64_t input_frames_ = 0;
     uint32_t decimation_phase_ = 0;
     uint32_t analysis_phase_ = 0;
     bool tracking_ = true;
+    bool valid_ = false;
 };
 
 float noteFrequency(int note);

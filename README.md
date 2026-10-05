@@ -31,7 +31,7 @@ M5StickS3のHat2に接続する、ベース用の5チャンネル・ピエゾ入
 2. KiCad 9で [プロジェクト](hardware/sticks3-piezo-hat/sticks3-piezo-hat.kicad_pro)を開く。[回路図](hardware/sticks3-piezo-hat/sticks3-piezo-hat.kicad_sch)と[配線済み基板](hardware/sticks3-piezo-hat/sticks3-piezo-hat.kicad_pcb)が編集元。
 3. 製造には [JLCPCB用データ一式](hardware/sticks3-piezo-hat/release/PCBA_JLCPCB.zip)と[製造・組立手順](hardware/sticks3-piezo-hat/manufacturing.md)を使用する。BOM、CPL、手実装部品の一覧を含む。
 4. 変更後は[再生成・検査手順](hardware/sticks3-piezo-hat/README.md#ソースと再生成)に従い、製造データを再出力する。
-5. [ファームウェアの導入・操作手順](firmware/README.md)に従ってM5StickS3へ書き込み、入力スロットを確認する。標準は5弦・共通MIDIチャンネル1・起動時ミュート・高速開始設定。[標準設定の書き込み用ZIP](firmware/release/m5basspiezohat-sticks3-0.2.0.zip)も使用できる。
+5. [ファームウェアの導入・操作手順](firmware/README.md)に従ってM5StickS3へ書き込み、入力スロットを確認する。標準は5弦・共通MIDIチャンネル1・起動時ミュート・高速開始設定。[標準設定の書き込み用ZIP](firmware/release/m5basspiezohat-sticks3-0.2.1.zip)も使用できる。
 
 ## 検証状況
 

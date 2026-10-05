@@ -203,6 +203,32 @@ void latencyProfiles() {
             open, times[0] * 1000.0 / bass::kInputRate, times[1] * 1000.0 / bass::kInputRate);
     }
 }
+
+void configurationChanges() {
+    Capture capture;
+    bass::Config invalid; invalid.string_count = 6;
+    bass::Engine engine(invalid);
+    REQUIRE(!engine.valid());
+    REQUIRE(!engine.process(nullptr, 0, capture));
+    engine.reset(capture); // Invalid construction must not index beyond five states.
+    for (int count : {4, 5}) for (bool fast : {false, true}) {
+        bass::Config c; c.string_count = count; c.fast_tracking = fast;
+        if (count == 4) c.open_notes = {28, 33, 38, 43, 0};
+        REQUIRE(engine.configure(c, capture));
+        REQUIRE(engine.valid());
+        auto rejected = c; rejected.slots[1] = rejected.slots[0];
+        REQUIRE(!engine.configure(rejected, capture));
+        REQUIRE(engine.valid() && engine.config().slots == c.slots);
+        std::array<int16_t, 32 * bass::kSlots> block{};
+        for (size_t first = 0; first < 4000; first += 32) {
+            for (size_t f = 0; f < 32; ++f) for (int i = 0; i < count; ++i)
+                block[f * bass::kSlots + i] = std::lround(3000 * std::sin(2 * pi * bass::noteFrequency(c.open_notes[i]) * (first + f) / bass::kInputRate));
+            REQUIRE(engine.process(block.data(), 32, capture));
+        }
+        for (int i = 0; i < count; ++i) REQUIRE(engine.status()[i].note == c.open_notes[i]);
+    }
+    std::puts("PASS invalid construction, rejected mappings and reconfiguration of 4/5-string timing caches");
+}
 } // namespace
 
-int main() { estimatorParity(); musicalRegression(); mutedAndResumed(); phaseDiscontinuity(); packetBatch(); latencyProfiles(); }
+int main() { estimatorParity(); musicalRegression(); mutedAndResumed(); phaseDiscontinuity(); packetBatch(); latencyProfiles(); configurationChanges(); }

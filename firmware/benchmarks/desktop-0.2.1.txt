@@ -1,0 +1,76 @@
+Coding-only optimization comparison, 2026-10-06
+Intel Xeon E3-1535M v6, Ubuntu, GCC 13.3.0, C++17 -O2
+Same firmware/tests/benchmark_core.cpp compiled against each core.
+No target CPU timing or physical input measurement.
+
+Baseline 0.2.0 commit 241932ac2e82f43d9339d24fb73076f44ce7d1d8
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=fast tracking=active
+one-Low-B ns/frame=113.8 block_p95_us=12.7 block_max_us=25.4 checksum=1340
+five-open ns/frame=290.0 block_p95_us=16.9 block_max_us=37.7 checksum=6950
+five-fret12 ns/frame=190.1 block_p95_us=9.7 block_max_us=27.3 checksum=7200
+five-fret24 ns/frame=137.2 block_p95_us=6.4 block_max_us=28.1 checksum=7435
+five-noise ns/frame=351.4 block_p95_us=13.1 block_max_us=25.4 checksum=0
+five-silence ns/frame=80.8 block_p95_us=2.4 block_max_us=15.4 checksum=0
+
+0.2.1 default
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=fast tracking=active
+one-Low-B ns/frame=40.9 block_p95_us=3.4 block_max_us=24.3 checksum=1340
+five-open ns/frame=120.7 block_p95_us=5.3 block_max_us=130.6 checksum=6950
+five-fret12 ns/frame=88.6 block_p95_us=4.5 block_max_us=40.8 checksum=7200
+five-fret24 ns/frame=73.0 block_p95_us=2.6 block_max_us=28.7 checksum=7435
+five-noise ns/frame=152.5 block_p95_us=4.8 block_max_us=71.0 checksum=0
+five-silence ns/frame=56.5 block_p95_us=1.6 block_max_us=80.0 checksum=0
+
+0.2.1 long startup
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=conservative tracking=active
+one-Low-B ns/frame=39.0 block_p95_us=3.5 block_max_us=24.2 checksum=1340
+five-open ns/frame=115.7 block_p95_us=5.3 block_max_us=26.6 checksum=6960
+five-fret12 ns/frame=85.9 block_p95_us=3.6 block_max_us=25.8 checksum=7200
+five-fret24 ns/frame=74.4 block_p95_us=2.7 block_max_us=14.5 checksum=7435
+five-noise ns/frame=118.9 block_p95_us=6.0 block_max_us=35.0 checksum=0
+five-silence ns/frame=53.3 block_p95_us=1.7 block_max_us=14.2 checksum=0
+
+0.2.1 muted
+Desktop benchmark: median of 5 runs, 5 input seconds/run; not ESP32-S3 timing.
+Requested profile=fast tracking=muted
+one-Low-B ns/frame=7.3 block_p95_us=0.2 block_max_us=0.3 checksum=0
+five-open ns/frame=16.7 block_p95_us=0.5 block_max_us=19.0 checksum=0
+five-fret12 ns/frame=14.3 block_p95_us=0.4 block_max_us=24.0 checksum=0
+five-fret24 ns/frame=14.1 block_p95_us=0.4 block_max_us=21.1 checksum=0
+five-noise ns/frame=14.5 block_p95_us=0.7 block_max_us=21.7 checksum=0
+five-silence ns/frame=13.9 block_p95_us=0.4 block_max_us=3.5 checksum=0
+
+0.2.0 synthetic MIDI trace hashes (includes event frame and MIDI bytes)
+strings=4 fast=0 chunk=7 events=28 hash=9e387ba4928123a9
+strings=4 fast=0 chunk=32 events=28 hash=9e387ba4928123a9
+strings=4 fast=0 chunk=97 events=28 hash=9e387ba4928123a9
+strings=4 fast=1 chunk=7 events=28 hash=e8c444e368d622c4
+strings=4 fast=1 chunk=32 events=28 hash=e8c444e368d622c4
+strings=4 fast=1 chunk=97 events=28 hash=e8c444e368d622c4
+strings=5 fast=0 chunk=7 events=35 hash=4d33d9b6a682d339
+strings=5 fast=0 chunk=32 events=35 hash=4d33d9b6a682d339
+strings=5 fast=0 chunk=97 events=35 hash=4d33d9b6a682d339
+strings=5 fast=1 chunk=7 events=35 hash=b2ad05480282109a
+strings=5 fast=1 chunk=32 events=35 hash=b2ad05480282109a
+strings=5 fast=1 chunk=97 events=35 hash=b2ad05480282109a
+
+0.2.1 same synthetic MIDI streams
+strings=4 fast=0 chunk=7 events=28 hash=9e387ba4928123a9
+strings=4 fast=0 chunk=32 events=28 hash=9e387ba4928123a9
+strings=4 fast=0 chunk=97 events=28 hash=9e387ba4928123a9
+strings=4 fast=1 chunk=7 events=28 hash=e8c444e368d622c4
+strings=4 fast=1 chunk=32 events=28 hash=e8c444e368d622c4
+strings=4 fast=1 chunk=97 events=28 hash=e8c444e368d622c4
+strings=5 fast=0 chunk=7 events=35 hash=4d33d9b6a682d339
+strings=5 fast=0 chunk=32 events=35 hash=4d33d9b6a682d339
+strings=5 fast=0 chunk=97 events=35 hash=4d33d9b6a682d339
+strings=5 fast=1 chunk=7 events=35 hash=b2ad05480282109a
+strings=5 fast=1 chunk=32 events=35 hash=b2ad05480282109a
+strings=5 fast=1 chunk=97 events=35 hash=b2ad05480282109a
+
+ESP32-S3 GCC sizeof(Engine): 0.2.0=14048 bytes; 0.2.1=20240 bytes (+6192).
+Default target application: 0.2.0=613200 bytes; 0.2.1=613776 bytes (+576).
+Trace streams: 32000 frames, stage every 4000 frames: frets 0/5/12/24, silence and renewed attacks. No bend in this comparison.

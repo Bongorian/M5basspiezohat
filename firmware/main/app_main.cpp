@@ -85,6 +85,7 @@ void analysis_task(void*) {
     uint64_t process_us = 0;
     uint32_t max_process_us = 0, discontinuities = 0, max_queue_blocks = 0;
     uint32_t publish_counter = 0;
+    const bool midi_valid = router.valid(CONFIG_BASS_STRING_COUNT);
     for (;;) {
         Mapping mapping;
         while (xQueueReceive(controls, &mapping, 0) == pdTRUE) {
@@ -112,7 +113,7 @@ void analysis_task(void*) {
             usb.panic();
         }
         const int64_t start = esp_timer_get_time();
-        if (engine.config().valid() && router.valid(engine.config().string_count) &&
+        if (engine.valid() && midi_valid &&
             !engine.process(block.samples.data(), board::kBlockFrames, sink, !now_mute && now_ready)) usb.panic();
         std::array<float, bass::kSlots> peaks{};
         for (size_t slot = 0; slot < bass::kSlots; ++slot) {
