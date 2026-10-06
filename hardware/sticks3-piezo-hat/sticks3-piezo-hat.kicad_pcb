@@ -918,7 +918,7 @@
 			)
 		)
 		(path "/1837492f-9077-564f-999f-d1ddc0e90531/184195b3-676f-5d9e-be23-8de79b12f697")
-		(attr smd exclude_from_pos_files)
+		(attr smd)
 		(fp_line
 			(start 0.88 -1.25)
 			(end 0.88 -0.5)
@@ -8207,7 +8207,7 @@
 			)
 		)
 		(path "/1837492f-9077-564f-999f-d1ddc0e90531/13d4c4ee-b38e-50b3-b7bf-ba9136d10d73")
-		(attr smd exclude_from_pos_files)
+		(attr smd)
 		(fp_line
 			(start 0.88 -1.25)
 			(end 0.88 -0.5)
@@ -10088,7 +10088,7 @@
 			)
 		)
 		(path "/1837492f-9077-564f-999f-d1ddc0e90531/9297b7da-ba8c-5529-a613-3980dff4feab")
-		(attr smd exclude_from_pos_files)
+		(attr smd)
 		(fp_line
 			(start 0.88 -1.25)
 			(end 0.88 -0.5)
@@ -11443,7 +11443,7 @@
 			)
 		)
 		(path "/1837492f-9077-564f-999f-d1ddc0e90531/270f48b0-bed2-5e36-9c0c-7d06d78ca7e3")
-		(attr smd exclude_from_pos_files)
+		(attr smd)
 		(fp_line
 			(start 0.88 -1.25)
 			(end 0.88 -0.5)
@@ -12484,7 +12484,7 @@
 			)
 		)
 		(path "/1837492f-9077-564f-999f-d1ddc0e90531/372a476b-478f-5171-9437-30da0efb5279")
-		(attr smd exclude_from_pos_files)
+		(attr smd)
 		(fp_line
 			(start 0.88 -1.25)
 			(end 0.88 -0.5)

@@ -1,0 +1,41 @@
+{
+  "angle_rule": "JLC rotation = (KiCad rotation + correction) modulo 360; Top only",
+  "preview_verified": false,
+  "parts": {
+    "C882406": {
+      "degrees": 0,
+      "references": [
+        "U1",
+        "U2"
+      ],
+      "basis": "Supplied JLCPCB preview: upper-left package marking agrees with PCB pin 1."
+    },
+    "C365743": {
+      "degrees": 270,
+      "references": [
+        "U3",
+        "U4"
+      ],
+      "basis": "Supplied JLCPCB preview has the package marking at lower-left; rotate clockwise 90 degrees to PCB upper-left pin 1."
+    },
+    "C51118": {
+      "degrees": 270,
+      "references": [
+        "U5",
+        "U6"
+      ],
+      "basis": "Supplied JLCPCB preview has two leads above / three below. Rotate clockwise 90 degrees to PCB three leads left / two right, pin 1 upper-left."
+    },
+    "C51315120": {
+      "degrees": 270,
+      "references": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "basis": "SOT-323 top-view zero uses pin 1 lower-left, pin 2 lower-right and pin 3 above. KiCad zero has pins 1/2 left. KiCad 90 plus 270 gives CPL 0: pins 1/2 below, pin 3 above. New JLCPCB preview must confirm this part-specific convention."
+    }
+  }
+}

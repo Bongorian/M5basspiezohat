@@ -1,26 +1,30 @@
 {
   "PCBA_JLCPCB.zip": {
-    "bytes": 253491,
-    "sha256": "0647aef7ba69a3359716b9be728eefb8dcc8c1775b1fdb5c9588f0d4a286987f"
+    "bytes": 254685,
+    "sha256": "f710018f7df68eddd442e20e908fa1a4425be572bd06c82ff58c5c3534e2e54d"
   },
   "Gerber_JLCPCB.zip": {
-    "bytes": 112423,
-    "sha256": "23faf864d278a4233cf9d8d167321129ccb9e9aedd494c91f3b0702118cfa98e"
+    "bytes": 112426,
+    "sha256": "0b9f62371436d205064aa63ad28146c900f95ca7cde050b2a9882a675e278237"
   },
   "KiCad_source.zip": {
-    "bytes": 272714,
-    "sha256": "eb9f245c774d5f79249da2d909f31f2e10e6aa75f50b63e654880a7f7fb7caec"
+    "bytes": 274440,
+    "sha256": "992ec3de818e2559cadddf28950f6990936f71aa3c944599ad2a6d29bf467987"
   },
   "BOM_JLCPCB.csv": {
-    "bytes": 1043,
-    "sha256": "c58cbaa22500048c1c34499559ec12e17ab9852340e5bfb9d0862194a4e630cf"
+    "bytes": 1116,
+    "sha256": "f8693a1025f68269ef979d5fb1b4e84b373b387adaa8e929c1933cf9ee49817b"
   },
   "CPL_JLCPCB.csv": {
-    "bytes": 3641,
-    "sha256": "66747085bb71b5784be47b88ac831880471a0d3d7453c66e84a6c0ca365a79e6"
+    "bytes": 3832,
+    "sha256": "f8f47d90306ef695a43461f3153102e2877f56886b4492d6cdff777011bfc70b"
   },
   "assembly-front.png": {
     "bytes": 152546,
     "sha256": "56f1db8c654304936a2cc704e27bf6278baab16e7945ab246ac7ce013202a6c5"
+  },
+  "rotation-audit.csv": {
+    "bytes": 545,
+    "sha256": "cf74e1e01a8138d84aef1b74961f5e89d0a74cf0f8ebda8f41fe950bc349eed5"
   }
 }

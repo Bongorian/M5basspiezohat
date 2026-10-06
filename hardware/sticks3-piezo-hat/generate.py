@@ -25,7 +25,7 @@ parts={
  'OP':('TLV9064IRTER','C882406','Package_DFN_QFN:QFN-16-1EP_3x3mm_P0.5mm_EP1.675x1.675mm','JLC','check at BOM upload',.8868),
  'ADC':('ES7210','C365743','PiezoHat:ES7210_QFN32_4x4_P0.4_EP2.7','JLC','Extended',.9057),
  'LDO':('AP2112K-3.3TRG1','C51118','Package_TO_SOT_SMD:SOT-23-5','JLC','check at BOM upload',.1726),
- 'CLAMP':('BAV199W (CBI)','C51315120','Package_TO_SOT_SMD:SOT-323_SC-70','HAND','not needed for PCBA',.0336),
+ 'CLAMP':('BAV199W (CBI)','C51315120','Package_TO_SOT_SMD:SOT-323_SC-70','JLC','check sourcing at BOM upload',.0336),
  'R1k':('0402WGF1001TCE','C11702','Resistor_SMD:R_0402_1005Metric','JLC','Basic observed',None),
  'R10M':('1RC0402J0106','C54531017','Resistor_SMD:R_0402_1005Metric','JLC','check at BOM upload',.0012),
  'R47k':('0603WAF4702T5E','C25819','Resistor_SMD:R_0603_1608Metric','JLC','check at BOM upload',None),

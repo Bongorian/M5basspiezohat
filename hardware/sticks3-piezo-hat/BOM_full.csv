@@ -2,7 +2,7 @@ Comment,Designator,Footprint,LCSC Part #,Quantity,Assembly,Manufacturer Part
 PIEZO1,J1,PiezoHat:PiezoPair_P3.8,,1,HAND,Internal wire solder pair
 47k,"R1,R4,R7,R10,R13,R26,R28,R29",PiezoHat:R_0603_1608Metric_AssemblyFront,C25819,8,JLC,0603WAF4702T5E
 10M,"R2,R3,R5,R6,R8,R9,R11,R12,R14,R15",PiezoHat:R_0402_1005Metric_AssemblyFront,C54531017,10,JLC,1RC0402J0106
-BAV199W,"D1,D2,D3,D4,D5",PiezoHat:SOT-323_SC-70_AssemblyFront,C51315120,5,HAND,BAV199W (CBI)
+BAV199W,"D1,D2,D3,D4,D5",PiezoHat:SOT-323_SC-70_AssemblyFront,C51315120,5,JLC,BAV199W (CBI)
 PIEZO2,J2,PiezoHat:PiezoPair_P3.8,,1,HAND,Internal wire solder pair
 PIEZO3,J3,PiezoHat:PiezoPair_P3.8,,1,HAND,Internal wire solder pair
 PIEZO4,J4,PiezoHat:PiezoPair_P3.8,,1,HAND,Internal wire solder pair

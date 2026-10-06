@@ -10,7 +10,9 @@
 | 回路図・PCB・マニフェストの接続一致 | 318接続 | [verification.json](verification.json) |
 | SMDパッドとビア穴の重なり | 0件 | [verification.json](verification.json) |
 | GND専用内層の信号配線 | 0件 | `release.py`による検査 |
-| PCBA BOMとCPLの参照名・実装面 | 96点一致、Topのみ | `release.py`による検査 |
+| PCBA BOMとCPLの参照名・実装面 | 101点一致、Topのみ | `release.py`による検査 |
+
+CPLはU3・U4・U5・U6に270°の品番別補正を適用し、D1〜D5をPCBAへ追加。補正一覧と基板上のピン1座標を`release/rotation-audit.csv`に記録する。新しいJLCPCB配置プレビュー、部品照合・調達可否、DFMは未確認。
 
 配線は2410セグメント、161ビア。実部品は表面のみ。裏面はTP1〜TP4の裸銅箔。
 

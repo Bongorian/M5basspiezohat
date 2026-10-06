@@ -8,7 +8,7 @@
 
 KiCad 9.0.9で未接続0件、DRC違反0件、回路図ERC違反0件。配線済み基板は [sticks3-piezo-hat.kicad_pcb](sticks3-piezo-hat.kicad_pcb)。2410配線セグメント／161ビア、回路図／基板／設計マニフェストの318接続が一致。部品本体は表面のみ、裏面はTP1〜4の裸銅箔。内層GND面の信号線は0、SMDパッドとビア穴の重なりは0。
 
-[JLCPCB用データ一式](release/README.md)：[Gerber ZIP](release/Gerber_JLCPCB.zip)、[PCBA BOM](release/BOM_JLCPCB.csv)、[CPL](release/CPL_JLCPCB.csv)、[組立位置図](release/assembly-front.png)。BOMとCPLは96個の部品名が完全一致し、全点Top。D1〜D5、J6、ピエゾ線は手実装。U4の割り込み出力（13番ピン）はNC。ADC初期設定では割り込みを無効にする。
+[JLCPCB用データ一式](release/README.md)：[Gerber ZIP](release/Gerber_JLCPCB.zip)、[PCBA BOM](release/BOM_JLCPCB.csv)、[CPL](release/CPL_JLCPCB.csv)、[組立位置図](release/assembly-front.png)。BOMとCPLは101個の部品名が完全一致し、全点Top。CPLは品番別の回転補正を適用済み。D1〜D5もPCBA対象。J6とピエゾ線は手実装。U4の割り込み出力（13番ピン）はNC。ADC初期設定では割り込みを無効にする。
 
 最小配線幅／間隔0.10／0.10mm、貫通ビア外径0.40mm・穴0.20mm、表裏テント、マスク開口1:1。[JLCPCBの能力表](https://jlcpcb.com/capabilities/pcb-capabilities)に対応するが、外径0.45mm未満・穴0.20mmのビアは追加料金対象なので、注文時に小径ビアの条件を指定する。製造条件と手実装の手順は [manufacturing.md](manufacturing.md)、検査記録は [validation.md](validation.md) を参照。
 
@@ -38,7 +38,7 @@ Low B・30.87Hzを保つため、ピエゾ容量、20MΩ負荷、AC結合容量�
 | ES7210・4入力ADC | [C365743](https://www.lcsc.com/product-detail/C365743.html) | 2 | PCBA |
 | TLV9064IRTER・3×3mm WQFN | [C882406](https://www.lcsc.com/product-detail/C882406.html) | 2 | PCBA |
 | AP2112K-3.3TRG1 | [C51118](https://www.lcsc.com/product-detail/C51118.html) | 2 | PCBA |
-| BAV199W・CBI・SOT-323 | [C51315120](https://www.lcsc.com/product-detail/C51315120.html) | 5 | 手はんだ |
+| BAV199W・CBI・SOT-323 | [C51315120](https://www.lcsc.com/product-detail/C51315120.html) | 5 | PCBA |
 | 10MΩ・SAE・0402 | [C54531017](https://www.lcsc.com/product-detail/C54531017.html) | 10 | PCBA |
 | 1kΩ・0402 | [C11702](https://www.lcsc.com/product-detail/C11702.html) | 12 | PCBA |
 | 33Ω・0402 | [C25105](https://www.lcsc.com/product-detail/C25105.html) | 5 | PCBA |
@@ -88,6 +88,7 @@ Low Bの周期は約32.4ms。DMA待ちを短くしても、音程確定に必要
 - `PiezoHat.pretty/`、`PiezoHat.kicad_sym`：プロジェクト内ライブラリ
 - `design.json`：ピン、型番、部品座標
 - `BOM_JLCPCB.csv`：PCBA部品のみ、標準4列
+- `jlc-rotation-corrections.json`：品番別のCPL回転補正。新しい品番へ変更したらプレビューを再確認
 - `BOM_full.csv`、`HAND_ASSEMBLY.csv`：全調達／手実装
 - `verify.py`、`verification.json`：接続と実装面の確認
 - `preview/routed-front.png`、`preview/routed-board.glb`：最終基板の配線図・3D

@@ -1,12 +1,7 @@
 Designator,Part,LCSC,Instructions
 J1,Internal wire solder pair,,Fit after PCBA; required before powered piezo use
-D1,BAV199W (CBI),C51315120,Fit after PCBA; required before powered piezo use
 J2,Internal wire solder pair,,Fit after PCBA; required before powered piezo use
-D2,BAV199W (CBI),C51315120,Fit after PCBA; required before powered piezo use
 J3,Internal wire solder pair,,Fit after PCBA; required before powered piezo use
-D3,BAV199W (CBI),C51315120,Fit after PCBA; required before powered piezo use
 J4,Internal wire solder pair,,Fit after PCBA; required before powered piezo use
-D4,BAV199W (CBI),C51315120,Fit after PCBA; required before powered piezo use
 J5,Internal wire solder pair,,Fit after PCBA; required before powered piezo use
-D5,BAV199W (CBI),C51315120,Fit after PCBA; required before powered piezo use
 J6,BXCONN PZ-2.54-2*08-8.5-WZ,C53207371,Fit after PCBA; required before powered piezo use

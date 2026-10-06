@@ -1,6 +1,6 @@
 {
   "stage": "routing complete; fabrication and PCBA files generated",
-  "checked_at": "2026-10-06T04:14:07.657916+09:00",
+  "checked_at": "2026-10-06T11:36:20.318691+09:00",
   "board": "sticks3-piezo-hat.kicad_pcb",
   "layers": 4,
   "board_mm": [
@@ -14,7 +14,9 @@
   "other_drc_violations": 0,
   "track_segments": 2410,
   "vias": 161,
-  "pcba_components": 96,
+  "pcba_components": 101,
+  "jlc_rotation_corrections_applied": true,
+  "jlc_new_preview_verified": false,
   "unfilled_via_in_smd_paste": 0,
   "non_ground_tracks_on_ground_plane": 0,
   "fabrication_data_complete": true,

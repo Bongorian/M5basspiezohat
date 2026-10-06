@@ -1,5 +1,5 @@
 Drill report for sticks3-piezo-hat.kicad_pcb
-Created on 2026-10-06T04:14:00+0900
+Created on 2026-10-06T11:36:13+0900
 
 Copper Layer Stackup:
     =============================================================
